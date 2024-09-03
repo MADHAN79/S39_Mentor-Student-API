@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
-const studentSchema = new mongoose.Schema({
+const StudentSchema = new mongoose.Schema({
+    _id: { type: String }, // Use String for _id
     name: { type: String, required: true },
-    mentor: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor', default: null },
-    previousMentors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Mentor' }],
+    mentor: { type: String, ref: 'Mentor' }, // Adjust as needed
+    previousMentors: [{ type: String, ref: 'Mentor' }]
 });
 
-module.exports = mongoose.model('Student', studentSchema);
+module.exports = mongoose.model('Student', StudentSchema);

@@ -3,13 +3,15 @@ const router = express.Router();
 const Mentor = require('../models/Mentor');
 const Student = require('../models/Student');
 
-// Create a new Mentor
-router.post('/create', async (req, res) => {
+// Create multiple mentors
+router.post('/create-many', async (req, res) => {
     try {
-        const { name } = req.body;
-        const mentor = new Mentor({ name });
-        await mentor.save();
-        res.status(201).json(mentor);
+        const mentors = req.body; // Expecting an array of mentor objects
+        if (!Array.isArray(mentors)) {
+            return res.status(400).json({ error: 'Invalid data format' });
+        }
+        const createdMentors = await Mentor.insertMany(mentors);
+        res.status(201).json(createdMentors);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -24,16 +26,16 @@ router.post('/:mentorId/assign-students', async (req, res) => {
         const mentor = await Mentor.findById(mentorId);
         if (!mentor) return res.status(404).json({ error: 'Mentor not found' });
 
-        for (const studentId of studentIds) {
-            const student = await Student.findById(studentId);
-            if (student && !student.mentor) {
+        const students = await Student.find({ '_id': { $in: studentIds } });
+        students.forEach(student => {
+            if (!student.mentor) {
                 student.mentor = mentorId;
                 student.previousMentors.push(mentorId);
-                await student.save();
-                mentor.students.push(studentId);
+                mentor.students.push(student._id);
             }
-        }
-        await mentor.save();
+        });
+
+        await Promise.all([mentor.save(), ...students.map(student => student.save())]);
         res.status(200).json(mentor);
     } catch (err) {
         res.status(500).json({ error: err.message });
