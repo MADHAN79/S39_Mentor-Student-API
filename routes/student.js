@@ -57,7 +57,7 @@ router.post('/assign-mentors', async (req, res) => {
 });
 
 // Route to change the mentor for a student
-router.put('/students/:studentId/change-mentor', async (req, res) => {
+router.put('/:studentId/change-mentor', async (req, res) => {
     try {
         const { studentId } = req.params;
         const { newMentorId } = req.body;
@@ -102,25 +102,33 @@ router.put('/students/:studentId/change-mentor', async (req, res) => {
 
 
 
-// Get previously assigned mentors for multiple students
-router.post('/previous-mentors', async (req, res) => {
+// Get previously assigned mentors for a specific student
+router.get('/:studentId/previous-mentors', async (req, res) => {
     try {
-        const { studentIds } = req.body; // Array of student IDs
-        if (!Array.isArray(studentIds)) {
-            return res.status(400).json({ error: 'Invalid data format' });
+        const { studentId } = req.params;
+
+        // Find the student by ID
+        const student = await Student.findById(studentId).populate({
+            path: 'previousMentors',
+            select: 'name _id', // Select fields to return for each mentor
+        });
+
+        // If the student is not found, return an error
+        if (!student) {
+            return res.status(404).json({ error: "Student not found" });
         }
 
-        const students = await Student.find({ '_id': { $in: studentIds } }).populate('previousMentors');
-        if (!students) return res.status(404).json({ error: 'Students not found' });
+        // Return the previous mentors in the response
+        res.status(200).json({ previousMentors: student.previousMentors });
+    } catch (error) {
+        // Log the error for debugging purposes
+        console.error(error);
 
-        const result = students.map(student => ({
-            studentId: student._id,
-            previousMentors: student.previousMentors
-        }));
-        res.status(200).json(result);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+        // Return a 500 error if something goes wrong on the server
+        res.status(500).json({ error: "An error occurred while retrieving previous mentors" });
     }
 });
+
+
 
 module.exports = router;
