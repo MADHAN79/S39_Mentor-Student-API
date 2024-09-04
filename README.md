@@ -31,7 +31,4 @@ Session-39 TASK :
  
 6. API to show the previously assigned mentor for a particular student.
  
- ![Uploading image.png…]()
-
- 
-
+![image](https://github.com/user-attachments/assets/a5c5935e-6ce0-436d-8a2b-3f5715213617)
