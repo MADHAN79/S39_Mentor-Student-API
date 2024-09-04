@@ -14,7 +14,7 @@ const app = express();
 
 // Use CORS to allow requests from your front-end
 app.use(cors({
-    origin: 'https://assign-mentor-nksi.onrender.com/',  // Replace with your front-end origin
+    origin: 'https://assign-mentor-nksi.onrender.com',  // Replace with your front-end origin
     credentials: true,  // If you need to allow credentials (like cookies or authentication headers)
 }));
 // Other middleware
