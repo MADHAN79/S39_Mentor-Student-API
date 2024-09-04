@@ -1,59 +1,78 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import api from '../api/axios';
 
 const ChangeMentor = () => {
     const [students, setStudents] = useState([]);
     const [mentors, setMentors] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState('');
-    const [newMentor, setNewMentor] = useState('');
+    const [selectedMentor, setSelectedMentor] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
-            const studentRes = await axios.get('/api/students');
-            const mentorRes = await axios.get('/api/mentors');
-            setStudents(studentRes.data);
-            setMentors(mentorRes.data);
+            try {
+                const studentRes = await api.get('/students');
+                const mentorRes = await api.get('/mentors');
+                setStudents(studentRes.data);
+                setMentors(mentorRes.data);
+            } catch (err) {
+                setError('Error fetching data: ' + err.message);
+            }
         };
+
         fetchData();
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`/api/students/${selectedStudent}/change-mentor`, { newMentorId: newMentor });
-            console.log('Mentor changed:', response.data);
-        } catch (error) {
-            console.error('Error changing mentor:', error);
+            await api.put(`/students/${selectedStudent}/change-mentor`, { newMentorId: selectedMentor });
+            setSuccess('Mentor changed successfully');
+            setError('');
+        } catch (err) {
+            setError('Error changing mentor: ' + err.message);
+            setSuccess('');
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Change Mentor for Student</h2>
-            <select
-                value={selectedStudent}
-                onChange={e => setSelectedStudent(e.target.value)}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-                <option value="">Select Student</option>
-                {students.map(student => (
-                    <option key={student._id} value={student._id}>{student.name}</option>
-                ))}
-            </select>
-            <select
-                value={newMentor}
-                onChange={e => setNewMentor(e.target.value)}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-                <option value="">Select New Mentor</option>
-                {mentors.map(mentor => (
-                    <option key={mentor._id} value={mentor._id}>{mentor.name}</option>
-                ))}
-            </select>
-            <button type="submit" className="bg-yellow-500 text-white py-2 px-4 rounded">
-                Change Mentor
-            </button>
-        </form>
+        <div className="container mx-auto p-4">
+            <h2 className="text-xl font-bold">Change Mentor for a Student</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block">Select Student:</label>
+                    <select
+                        value={selectedStudent}
+                        onChange={(e) => setSelectedStudent(e.target.value)}
+                        className="border p-2"
+                        required
+                    >
+                        <option value="">Select a student</option>
+                        {students.map(student => (
+                            <option key={student._id} value={student._id}>{student.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block">Select New Mentor:</label>
+                    <select
+                        value={selectedMentor}
+                        onChange={(e) => setSelectedMentor(e.target.value)}
+                        className="border p-2"
+                        required
+                    >
+                        <option value="">Select a mentor</option>
+                        {mentors.map(mentor => (
+                            <option key={mentor._id} value={mentor._id}>{mentor.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <button type="submit" className="bg-blue-500 text-white p-2">Change Mentor</button>
+            </form>
+            {error && <p className="text-red-500">{error}</p>}
+            {success && <p className="text-green-500">{success}</p>}
+        </div>
     );
 };
 

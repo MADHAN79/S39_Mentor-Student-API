@@ -1,6 +1,8 @@
 const express = require('express');
+const cors = require('cors');
+
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -8,7 +10,16 @@ const mentorRoutes = require('./routes/mentor');
 const studentRoutes = require('./routes/student');
 
 const app = express();
-app.use(bodyParser.json());
+
+
+// Use CORS to allow requests from your front-end
+app.use(cors({
+    origin: 'http://localhost:5173',  // Replace with your front-end origin
+    credentials: true,  // If you need to allow credentials (like cookies or authentication headers)
+}));
+// Other middleware
+app.use(express.json());
+
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;

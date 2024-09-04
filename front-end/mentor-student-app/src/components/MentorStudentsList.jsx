@@ -1,51 +1,44 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import api from '../api/axios';
 
 const MentorStudentsList = () => {
-    const [mentors, setMentors] = useState([]);
-    const [selectedMentor, setSelectedMentor] = useState('');
+    const [mentorId, setMentorId] = useState('');
     const [students, setStudents] = useState([]);
+    const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchMentors = async () => {
-            const response = await axios.get('/api/mentors');
-            setMentors(response.data);
-        };
-        fetchMentors();
-    }, []);
-
-    useEffect(() => {
-        const fetchStudents = async () => {
-            if (selectedMentor) {
-                const response = await axios.get(`/api/mentors/${selectedMentor}/students`);
-                setStudents(response.data.students);
-            }
-        };
-        fetchStudents();
-    }, [selectedMentor]);
+    const fetchStudents = async () => {
+        try {
+            const response = await api.get(`/mentors/${mentorId}/students`);
+            setStudents(response.data);
+            setError('');
+        } catch (err) {
+            setError('Error fetching students: ' + err.message);
+        }
+    };
 
     return (
-        <div className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Students Assigned to Mentor</h2>
-            <select
-                value={selectedMentor}
-                onChange={(e) => setSelectedMentor(e.target.value)}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-                <option value="">Select Mentor</option>
-                {mentors.map((mentor) => (
-                    <option key={mentor._id} value={mentor._id}>
-                        {mentor.name}
-                    </option>
-                ))}
-            </select>
-            <ul className="list-disc pl-5">
-                {students.map((student) => (
-                    <li key={student._id} className="mb-2">
-                        {student.name} - {student.email}
-                    </li>
-                ))}
-            </ul>
+        <div className="container mx-auto p-4">
+            <h2 className="text-xl font-bold">List Students for a Mentor</h2>
+            <div className="space-y-4">
+                <div>
+                    <label className="block">Select Mentor:</label>
+                    <input
+                        type="text"
+                        value={mentorId}
+                        onChange={(e) => setMentorId(e.target.value)}
+                        className="border p-2"
+                    />
+                    <button onClick={fetchStudents} className="bg-blue-500 text-white p-2">Get Students</button>
+                </div>
+                {students.length > 0 && (
+                    <ul className="list-disc pl-5">
+                        {students.map(student => (
+                            <li key={student._id}>{student.name}</li>
+                        ))}
+                    </ul>
+                )}
+                {error && <p className="text-red-500">{error}</p>}
+            </div>
         </div>
     );
 };

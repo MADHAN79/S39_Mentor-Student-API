@@ -1,51 +1,44 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import api from '../api/axios';
 
 const StudentPreviousMentors = () => {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState('');
+    const [studentId, setStudentId] = useState('');
     const [previousMentors, setPreviousMentors] = useState([]);
+    const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchStudents = async () => {
-            const response = await axios.get('/api/students');
-            setStudents(response.data);
-        };
-        fetchStudents();
-    }, []);
-
-    useEffect(() => {
-        const fetchPreviousMentors = async () => {
-            if (selectedStudent) {
-                const response = await axios.get(`/api/students/${selectedStudent}/previous-mentors`);
-                setPreviousMentors(response.data.previousMentors);
-            }
-        };
-        fetchPreviousMentors();
-    }, [selectedStudent]);
+    const fetchPreviousMentors = async () => {
+        try {
+            const response = await api.get(`/students/${studentId}/previous-mentors`);
+            setPreviousMentors(response.data.previousMentors);
+            setError('');
+        } catch (err) {
+            setError('Error fetching previous mentors: ' + err.message);
+        }
+    };
 
     return (
-        <div className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Previous Mentors of Student</h2>
-            <select
-                value={selectedStudent}
-                onChange={(e) => setSelectedStudent(e.target.value)}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-                <option value="">Select Student</option>
-                {students.map((student) => (
-                    <option key={student._id} value={student._id}>
-                        {student.name}
-                    </option>
-                ))}
-            </select>
-            <ul className="list-disc pl-5">
-                {previousMentors.map((mentor) => (
-                    <li key={mentor._id} className="mb-2">
-                        {mentor.name} - {mentor.email}
-                    </li>
-                ))}
-            </ul>
+        <div className="container mx-auto p-4">
+            <h2 className="text-xl font-bold">Previous Mentors for a Student</h2>
+            <div className="space-y-4">
+                <div>
+                    <label className="block">Select Student:</label>
+                    <input
+                        type="text"
+                        value={studentId}
+                        onChange={(e) => setStudentId(e.target.value)}
+                        className="border p-2"
+                    />
+                    <button onClick={fetchPreviousMentors} className="bg-blue-500 text-white p-2">Get Previous Mentors</button>
+                </div>
+                {previousMentors.length > 0 && (
+                    <ul className="list-disc pl-5">
+                        {previousMentors.map(mentor => (
+                            <li key={mentor._id}>{mentor.name}</li>
+                        ))}
+                    </ul>
+                )}
+                {error && <p className="text-red-500">{error}</p>}
+            </div>
         </div>
     );
 };

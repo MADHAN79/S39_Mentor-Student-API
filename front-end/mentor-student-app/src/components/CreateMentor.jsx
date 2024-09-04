@@ -1,46 +1,55 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 
 const CreateMentor = () => {
-    const [mentor, setMentor] = useState({ name: '', email: '' });
-
-    const handleChange = (e) => {
-        setMentor({ ...mentor, [e.target.name]: e.target.value });
-    };
+    const [name, setName] = useState('');
+    const [subject, setSubject] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/api/mentors', mentor);
-            console.log('Mentor created:', response.data);
-        } catch (error) {
-            console.error('Error creating mentor:', error);
+            const response = await api.post('/mentors/create', { name, subject });
+            setSuccess('Mentor created successfully');
+            setError('');
+            setName('');
+            setSubject('');
+        } catch (err) {
+            setError('Error creating mentor: ' + err.message);
+            setSuccess('');
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Create Mentor</h2>
-            <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={mentor.name}
-                onChange={handleChange}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            />
-            <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={mentor.email}
-                onChange={handleChange}
-                className="block w-full p-2 border border-gray-300 rounded mb-4"
-            />
-            <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded">
-                Create Mentor
-            </button>
-        </form>
+        <div className="container mx-auto p-4">
+            <h2 className="text-xl font-bold">Create Mentor</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block">Name:</label>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="border p-2"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block">Subject:</label>
+                    <input
+                        type="text"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        className="border p-2"
+                        required
+                    />
+                </div>
+                <button type="submit" className="bg-blue-500 text-white p-2">Create Mentor</button>
+            </form>
+            {error && <p className="text-red-500">{error}</p>}
+            {success && <p className="text-green-500">{success}</p>}
+        </div>
     );
 };
 
